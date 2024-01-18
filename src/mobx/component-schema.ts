@@ -1,7 +1,8 @@
-import { action, makeObservable, observable, set, toJS } from 'mobx';
+import {action, createAtom, makeObservable, observable, set, toJS} from 'mobx';
 import { ComponentSchemaId } from './types';
 import { HookSchema, NodeSchema, VariableSchema } from '../types/schema';
 import { schemaIdGenerator } from '../util/id-generator';
+import {IAtom} from "mobx/src/core/atom";
 
 interface ComponentSchemaCreateConfig {
   id: ComponentSchemaId;
@@ -19,6 +20,7 @@ interface ComponentSchemaUpdateConfig {
 }
 
 export class ComponentSchema {
+  private atom: IAtom;
   readonly id: ComponentSchemaId;
   componentType: string;
   props: Record<string, NodeSchema>;
@@ -32,19 +34,23 @@ export class ComponentSchema {
     this.variables = config.variables;
     this.hooks = config.hooks;
 
-    makeObservable(this, {
-      id: false,
+    // Creates an atom to interact with the MobX core algorithm.
+    this.atom = createAtom(`ComponentSchema ${config.id}`)
 
-      componentType: observable,
-      props: observable,
 
-      variables: observable,
-      hooks: observable,
-
-      setProperty: action,
-      setVariable: action,
-      setHooks: action,
-    });
+    // makeObservable(this, {
+    //   id: false,
+    //
+    //   componentType: observable,
+    //   // props: observable,
+    //
+    //   variables: observable,
+    //   // hooks: observable,
+    //
+    //   setProperty: action,
+    //   setVariable: action,
+    //   setHooks: action,
+    // });
   }
 
   update(config: ComponentSchemaUpdateConfig) {
@@ -59,10 +65,12 @@ export class ComponentSchema {
       this.props[propertyName] = propertySchema;
       return;
     }
-    set(this.props[propertyName], propertySchema);
+    this.props[propertyName] = propertySchema;
+    this.atom.reportChanged();
   }
 
   getProperty(propertyName: string): NodeSchema {
+    this.atom.reportObserved();
     return this.props[propertyName];
   }
 

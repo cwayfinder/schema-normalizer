@@ -2,7 +2,7 @@ import { Store } from './mobx/store';
 import { normalizeInstance } from './normalizer/instance.normalizer.';
 import { components } from './atoms/components';
 import { nestedInputGroups } from './schemas/nested-input-groups';
-import { toJS } from 'mobx';
+import {toJS} from 'mobx';
 
 function initSchema(): void {
   const store = new Store();

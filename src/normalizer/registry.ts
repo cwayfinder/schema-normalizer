@@ -31,9 +31,9 @@ export const registry: Record<string, (ctx: NormalizeContext<NodeDescription>) =
   number: (ctx) => normalizeNumber(ctx as NormalizeContext<NumberNodeDescription>),
   array: (ctx) => normalizeArray(ctx as NormalizeContext<ArrayNodeDescription>),
   object: (ctx) => normalizeObject(ctx as NormalizeContext<ObjectNodeDescription>),
-  map: (ctx) => normalizeMap(ctx as NormalizeContext<MapNodeDescription>),
+  map: (ctx) => normalizeMap(ctx as NormalizeContext<MapNodeDescription>), // this
   component: (ctx) => normalizeComponent(ctx as NormalizeContext<ComponentNodeDescription>),
-  componentSchema: (ctx) => normalizeComponent(ctx as NormalizeContext<ComponentNodeDescription>),
-  validator: (ctx) => normalizeValidator(ctx as NormalizeContext<ValidatorNodeDescription>),
+  componentSchema: (ctx) => normalizeComponent(ctx as NormalizeContext<ComponentNodeDescription>), // this
+  validator: (ctx) => normalizeValidator(ctx as NormalizeContext<ValidatorNodeDescription>), // this
   command: (ctx) => normalizeCommand(ctx as NormalizeContext<CommandNodeDescription>),
 };

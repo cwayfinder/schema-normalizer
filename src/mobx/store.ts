@@ -7,6 +7,9 @@ import { ComponentDefaultRawSchema } from '../types/schema';
 import { ValidatorDefinition } from '../types/validators';
 import { CommandDefinition, FormulaFunctionDefinition } from '../types/commands';
 
+
+const ComputedPropertiesCache = new Map<string, PropertyDescription[]>();
+
 export class Store {
   instanceSchemas: Record<InstanceSchemaId, InstanceSchema>;
 
@@ -91,6 +94,9 @@ export class Store {
   }
 
   getComponentComputedProperties(componentType: string): PropertyDescription[] {
+    if(ComputedPropertiesCache.has(componentType)) {
+      return ComputedPropertiesCache.get(componentType)!;
+    }
     const traits = this.getComponentTraits(componentType);
     const descriptions = traits.map((trait) => this.getComponentDefinition(trait).description);
 
@@ -101,7 +107,9 @@ export class Store {
       propMap[prop.key] = prop;
     }
 
-    return Object.values(propMap);
+    const computedProps =  Object.values(propMap);
+    ComputedPropertiesCache.set(componentType, computedProps);
+    return computedProps
   }
 
   getNodeDescription(componentType: string, path: string): PropertyDescription {
