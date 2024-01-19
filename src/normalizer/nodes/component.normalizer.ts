@@ -57,15 +57,15 @@ export function normalizeComponent(ctx: NormalizeContext<ComponentNodeDescriptio
     variables[key] = { description, schema: parsedSchema };
   }
 
-  const componentSchema = new ComponentSchema({
-    id: componentSchemaId,
-    componentType: rawSchema.componentType,
-    props,
-    variables,
-    hooks: mergedRawSchema.hooks || [],
-  });
+  // const componentSchema = new ComponentSchema({
+  //   id: componentSchemaId,
+  //   componentType: rawSchema.componentType,
+  //   props,
+  //   variables,
+  //   hooks: mergedRawSchema.hooks || [],
+  // });
 
-  ctx.components[componentSchemaId] = componentSchema;
+  // ctx.components[componentSchemaId] = componentSchema;
 
   if (rawSchema.customId) {
     ctx.customIds[rawSchema.customId] = componentSchemaId;

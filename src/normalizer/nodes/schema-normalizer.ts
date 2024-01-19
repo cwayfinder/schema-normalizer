@@ -15,20 +15,22 @@ import {
 import {schemaIdGenerator} from "../../util/id-generator";
 import {ComponentSchema} from "../../mobx/component-schema";
 import {validatorPropertiesDescriptions} from "../../types/validators";
+import {Observable} from "../../mobx/Observable";
 
 
+// todo: rework this part
 function addResolverDataToParent(ctx: NormalizeContext<NodeDescription>, from: From, result: NodeSchema | { [key: string]: NodeSchema } )  {
     if(from.nodeType === 'component') {
-        ctx.components![from.componentId!].props[from.nodeKey!] = { resolverName: 'static', resolverData: result, coerced: false };
+        ctx.components![from.componentId!].props[from.nodeKey!].value = { resolverName: 'static', resolverData: result, coerced: false };
     }
 
     if(from.nodeType === 'array') {
-        (ctx.components![from.componentId!].props[from.nodeKey!].resolverData as unknown[]).push(result.resolverData);
+        (ctx.components![from.componentId!].props[from.nodeKey!].value.resolverData as unknown[]).push(result.resolverData);
     }
 
     if(from.nodeType === 'object') {
-        const resolvedData = ctx.components![from.componentId!].props[from.nodeKey!].resolverData as Record<string, NodeSchema>;
-        ctx.components![from.componentId!].props[from.nodeKey!] = { resolverName: 'static', resolverData: {...resolvedData, ...result}, coerced: false };
+        const resolvedData = ctx.components![from.componentId!].props[from.nodeKey!].value.resolverData as Record<string, NodeSchema>;
+        ctx.components![from.componentId!].props[from.nodeKey!].value = { resolverName: 'static', resolverData: {...resolvedData, ...result}, coerced: false };
     }
 
 }
@@ -76,7 +78,7 @@ const normalizers = {
         const mergedRawSchema = { ...defaultRawSchema, ...rawSchema };
         const descriptions =  ctx.store.getComponentComputedProperties(mergedRawSchema.componentType)
 
-        const props = {} as Record<string, NodeSchema>;
+        const props = {} as Record<string, Observable<NodeSchema>>;
         for (const propDescription of descriptions) {
             const key = propDescription.key;
 
@@ -89,14 +91,14 @@ const normalizers = {
                 continue;
             }
 
-            props[key] = normalizeNode(ctx, queue, {
+            props[key] = new Observable(normalizeNode(ctx, queue, {
                 schema: mergedRawSchema[key],
                 nodeDescription: propDescription,
                 from: { nodeKey: key, componentId: componentSchemaId, nodeType: propDescription.type }
-            })
+            }))
         }
 
-        const variables: Record<string, VariableSchema> = {};
+        const variables: Record<string, Observable<VariableSchema>> = {};
         for (const [key, { description, schema }] of Object.entries(mergedRawSchema.variables || {})) {
             if (!description) {
                 throw new Error(`Context variable "${key}" has no description.`);
@@ -106,7 +108,7 @@ const normalizers = {
                     nodeDescription: description,
                     from: { nodeKey: key, componentId: componentSchemaId, nodeType: description.type }
                 })
-            variables[key] = { description, schema: parsedSchema };
+            variables[key] = new Observable<VariableSchema>({ description, schema: parsedSchema });
         }
 
         componentSchema.update({

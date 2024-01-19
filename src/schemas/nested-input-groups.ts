@@ -22,5 +22,5 @@ function createChildren(length: number): ComponentRawSchema[] {
 export const nestedInputGroups: ComponentRawSchema = {
   componentType: 'inputGroup',
   inputKey: `root-group`,
-  children: createChildren(10000),
+  children: createChildren(10_000),
 };
