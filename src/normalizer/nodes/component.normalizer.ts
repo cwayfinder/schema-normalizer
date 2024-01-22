@@ -4,6 +4,7 @@ import { ComponentNodeSchema, ComponentRawSchema, NodeSchema } from '../../types
 import { ComponentSchema } from '../../mobx/component-schema';
 import { schemaIdGenerator } from '../../util/id-generator';
 import { InstanceSchema } from '../../mobx/instance-schema';
+import { normalizeSchema } from '../instance.normalizer.';
 
 export function normalizeComponent(ctx: NormalizeContext<ComponentNodeDescription>): ComponentNodeSchema {
   ctx.components = ctx.components || {};
@@ -25,7 +26,7 @@ export function normalizeComponent(ctx: NormalizeContext<ComponentNodeDescriptio
   }
 
   const defaultRawSchema = ctx.store.getComponentComputedDefaultRawSchema(rawSchema.componentType);
-  const mergedRawSchema = { ...defaultRawSchema, ...rawSchema };
+  const mergedRawSchema: ComponentRawSchema = { ...defaultRawSchema, ...rawSchema };
 
   const componentSchemaId = schemaIdGenerator.generateId();
   const propsDescriptions = ctx.store.getComponentComputedProperties(mergedRawSchema.componentType);
@@ -45,18 +46,10 @@ export function normalizeComponent(ctx: NormalizeContext<ComponentNodeDescriptio
   const variables: Record<string, InstanceSchema> = {};
   for (const [key, { description, schema }] of Object.entries(mergedRawSchema.variables || {})) {
     if (!description) {
-      throw new Error(`Context variable "${key}" has no description.`);
+      throw new Error(`Variable "${key}" has no description.`);
     }
 
-    const variableCtx: NormalizeContext<NodeDescription> = {
-      store: ctx.store,
-      rawSchema: schema,
-      nodeDescription: description,
-    };
-    const variableSchema = normalizeNode(variableCtx);
-    variables[key] = new InstanceSchema({
-      description, schema: variableSchema,
-    }, variableCtx.components, variableCtx.customIds);
+    variables[key] = normalizeSchema(schema, description, ctx.store);
   }
 
   const componentSchema = new ComponentSchema({
