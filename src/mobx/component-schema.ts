@@ -1,4 +1,3 @@
-import { set } from 'mobx';
 import { ComponentSchemaId } from './types';
 import { HookSchema, NodeSchema } from '../types/schema';
 import { InstanceSchema } from './instance-schema';
@@ -41,11 +40,7 @@ export class ComponentSchema {
   }
 
   setProperty(propertyName: string, propertySchema: NodeSchema) {
-    if (!this.props[propertyName]) {
-      this.props[propertyName] = propertySchema;
-      return;
-    }
-    set(this.props[propertyName], propertySchema);
+    this.props[propertyName] = propertySchema;
   }
 
   getProperty(propertyName: string): NodeSchema {
@@ -53,11 +48,7 @@ export class ComponentSchema {
   }
 
   setVariable(variableName: string, schema: InstanceSchema) {
-    if (!this.variables[variableName]) {
-      this.variables[variableName] = schema;
-      return;
-    }
-    set(this.variables[variableName], schema);
+    this.variables[variableName] = schema;
   }
 
   getVariable(variableName: string): InstanceSchema {

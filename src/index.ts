@@ -1,7 +1,6 @@
 import { Store } from './mobx/store';
 import { normalizeSchema } from './normalizer/instance.normalizer.';
 import { components } from './atoms/components';
-import { toJS } from 'mobx';
 import { dropdowns } from './schemas/dropdowns';
 import { nestedInputGroups } from './schemas/nested-input-groups';
 
@@ -16,7 +15,7 @@ function initSchema(): void {
   const instanceSchemaId = 'anonymous-schema-1';
   store.setInstanceSchema(instanceSchemaId, instanceSchema);
 
-  console.log(toJS(store.getInstanceSchema(instanceSchemaId)));
+  console.log(store.getInstanceSchema(instanceSchemaId));
 }
 
 const button = document.getElementById('init') as HTMLButtonElement;
