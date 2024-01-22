@@ -1,31 +1,12 @@
-import { action, makeObservable, observable } from 'mobx';
-import { ComponentSchemaId } from './types';
+import { ComponentSchemaId, NodeDefinition } from './types';
 import { ComponentSchema } from './component-schema';
 
 export class InstanceSchema {
-  components: Record<ComponentSchemaId, ComponentSchema>;
-  rootId: ComponentSchemaId | null;
-  byCustomId: Record<ComponentSchemaId, ComponentSchemaId>;
-
   constructor(
-    components: Record<ComponentSchemaId, ComponentSchema> = {},
-    rootId: ComponentSchemaId | null = null,
-    byCustomId: Record<ComponentSchemaId, ComponentSchemaId> = {}
+    private root: NodeDefinition | null = null,
+    private readonly components: Record<ComponentSchemaId, ComponentSchema> = {},
+    private readonly byCustomId: Record<ComponentSchemaId, ComponentSchemaId> = {},
   ) {
-    this.components = components;
-    this.rootId = rootId;
-    this.byCustomId = byCustomId;
-
-    makeObservable(this, {
-      components: observable,
-      rootId: observable,
-      byCustomId: observable,
-
-      addComponent: action,
-      removeComponent: action,
-      moveComponent: action,
-      setCustomId: action,
-    });
   }
 
   getComponent(id: ComponentSchemaId): ComponentSchema | null {

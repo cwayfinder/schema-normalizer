@@ -1,5 +1,6 @@
 import { ComponentDescription } from '../types/component-description';
-import { ComponentDefaultRawSchema } from '../types/schema';
+import { ComponentDefaultRawSchema, NodeSchema } from '../types/schema';
+import { NodeDescription } from '../types/node-decription';
 
 export type InstanceSchemaId = string;
 export type InstanceId = string;
@@ -16,4 +17,9 @@ export type NodePosition = {
 export type ComponentDefinition = {
   description: ComponentDescription;
   defaultSchema: ComponentDefaultRawSchema;
-}
+};
+
+export type NodeDefinition = {
+  schema: NodeSchema,
+  description: NodeDescription
+};

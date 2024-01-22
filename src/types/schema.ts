@@ -49,11 +49,6 @@ export interface ValidatorNodeRawSchema {
   [prop: string]: unknown;
 }
 
-export interface VariableSchema {
-  description: NodeDescription;
-  schema: NodeSchema;
-}
-
 export interface ValidatorSchema {
   validatorType: string;
   message: NodeSchema<string>;

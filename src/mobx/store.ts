@@ -1,4 +1,3 @@
-import { action, makeObservable, observable } from 'mobx';
 import { ComponentDefinition, InstanceSchemaId } from './types';
 import { InstanceSchema } from './instance-schema';
 import { ComponentSchema } from './component-schema';
@@ -6,6 +5,9 @@ import { PropertyDescription } from '../types/component-description';
 import { ComponentDefaultRawSchema } from '../types/schema';
 import { ValidatorDefinition } from '../types/validators';
 import { CommandDefinition, FormulaFunctionDefinition } from '../types/commands';
+
+const computedPropertiesCache = new Map<string, PropertyDescription[]>();
+const computedDefaultRawSchemaCache = new Map<string, ComponentDefaultRawSchema>();
 
 export class Store {
   instanceSchemas: Record<InstanceSchemaId, InstanceSchema>;
@@ -22,17 +24,6 @@ export class Store {
     this.validatorDefinitions = {};
     this.formulaFunctionDefinitions = {};
     this.commandDefinitions = {};
-
-    makeObservable(this, {
-      instanceSchemas: observable,
-
-      componentDefinitions: observable,
-      validatorDefinitions: observable,
-      formulaFunctionDefinitions: observable,
-      commandDefinitions: observable,
-
-      setInstanceSchema: action,
-    });
   }
 
   setInstanceSchema(instanceId: InstanceSchemaId, instance: InstanceSchema): void {
@@ -57,10 +48,6 @@ export class Store {
       throw new Error(`Component with id "${componentSchemaId}" is not found.`);
     }
     return componentSchema;
-  }
-
-  getComponentIdByCustomId(instanceSchemaId: string, customId: string): string | undefined {
-    return this.getInstanceSchema(instanceSchemaId).byCustomId[customId];
   }
 
   setComponentDefinition(componentType: string, componentDefinition: ComponentDefinition): void {
@@ -91,6 +78,10 @@ export class Store {
   }
 
   getComponentComputedProperties(componentType: string): PropertyDescription[] {
+    if (computedPropertiesCache.has(componentType)) {
+      return computedPropertiesCache.get(componentType)!;
+    }
+
     const traits = this.getComponentTraits(componentType);
     const descriptions = traits.map((trait) => this.getComponentDefinition(trait).description);
 
@@ -101,7 +92,9 @@ export class Store {
       propMap[prop.key] = prop;
     }
 
-    return Object.values(propMap);
+    const result = Object.values(propMap);
+    computedPropertiesCache.set(componentType, result);
+    return result;
   }
 
   getNodeDescription(componentType: string, path: string): PropertyDescription {
@@ -116,11 +109,15 @@ export class Store {
   }
 
   getComponentComputedDefaultRawSchema(componentType: string): ComponentDefaultRawSchema {
+    if (computedDefaultRawSchemaCache.has(componentType)) {
+      return computedDefaultRawSchemaCache.get(componentType)!;
+    }
+
     const traitDefinitions = this.getComponentTraits(componentType).map((traitName) =>
       this.getComponentDefinition(traitName),
     );
     const schemas = traitDefinitions.filter((entry) => entry.defaultSchema).map((entry) => entry.defaultSchema);
-    return schemas.reduce(
+    const result = schemas.reduce(
       (acc, schema) => {
         const hooks = [...(acc.hooks || []), ...(schema.hooks || [])];
         const variables = { ...acc.variables, ...(schema.variables || {}) };
@@ -128,6 +125,10 @@ export class Store {
       },
       { hooks: [], variables: {} } as ComponentDefaultRawSchema,
     );
+
+    computedDefaultRawSchemaCache.set(componentType, result);
+
+    return result;
   }
 
   getComponentTypes(): string[] {

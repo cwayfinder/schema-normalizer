@@ -1,17 +1,18 @@
 import { ComponentRawSchema } from '../types/schema';
-import { NormalizeContext } from './node.normalizer';
-import { ComponentNodeDescription } from '../types/node-decription';
-import { normalizeComponent } from './nodes/component.normalizer';
+import { NormalizeContext, normalizeNode } from './node.normalizer';
+import { NodeDescription } from '../types/node-decription';
 import { InstanceSchema } from '../mobx/instance-schema';
 import { Store } from '../mobx/store';
+import { NodeDefinition } from '../mobx/types';
 
-export function normalizeInstance(rawSchema: ComponentRawSchema, store: Store): InstanceSchema {
-  const ctx: NormalizeContext<ComponentNodeDescription> = {
+export function normalizeSchema(rawSchema: ComponentRawSchema, rootNodeDescription: NodeDescription, store: Store): InstanceSchema {
+  const ctx: NormalizeContext<NodeDescription> = {
     store,
-    nodeDescription: { type: 'component' },
+    nodeDescription: rootNodeDescription,
     rawSchema: rawSchema,
   };
-  const rootId = normalizeComponent(ctx).resolverData as string;
+  const rootNodeSchema = normalizeNode(ctx);
+  const root: NodeDefinition = { description: rootNodeDescription, schema: rootNodeSchema };
 
-  return new InstanceSchema(ctx.components, rootId, ctx.customIds);
+  return new InstanceSchema(root, ctx.components, ctx.customIds);
 }
