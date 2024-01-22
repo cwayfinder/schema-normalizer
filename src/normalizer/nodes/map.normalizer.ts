@@ -2,7 +2,7 @@ import { MapNodeDescription, NodeDescription } from '../../types/node-decription
 import { NormalizeContext, normalizeNode } from '../node.normalizer';
 import { MapNodeSchema, NodeSchema } from '../../types/schema';
 
-export function normalizeMap(ctx: NormalizeContext<MapNodeDescription>): MapNodeSchema {
+export function normalizeMap(ctx: NormalizeContext<MapNodeDescription>, queue: NormalizeContext<NodeDescription>[]): MapNodeSchema {
   if (!ctx.rawSchema) {
     return { resolverName: 'static', resolverData: {}, coerced: ctx.rawSchema === undefined };
   }
@@ -19,8 +19,9 @@ export function normalizeMap(ctx: NormalizeContext<MapNodeDescription>): MapNode
       ...ctx,
       nodeDescription: ctx.nodeDescription.item,
       rawSchema: value,
+      insert: nodeSchema => resolverData[key] = nodeSchema,
     };
-    resolverData[key] = normalizeNode(childCtx);
+    queue.push(childCtx);
   }
 
   return { resolverName: 'static', resolverData, coerced: ctx.rawSchema === undefined };

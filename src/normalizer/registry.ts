@@ -24,16 +24,16 @@ import { normalizeCommand } from './nodes/command.normalizer';
 import { NormalizeContext } from './node.normalizer';
 import { normalizeMap } from './nodes/map.normalizer';
 
-export const registry: Record<string, (ctx: NormalizeContext<NodeDescription>) => unknown> = {
+export const registry: Record<string, (ctx: NormalizeContext<NodeDescription>, queue: NormalizeContext<NodeDescription>[]) => unknown> = {
   any: (ctx) => normalizeDefault(ctx as NormalizeContext<NodeDescriptions>),
   boolean: (ctx) => normalizeBoolean(ctx as NormalizeContext<BooleanNodeDescription>),
   string: (ctx) => normalizeString(ctx as NormalizeContext<StringNodeDescription>),
   number: (ctx) => normalizeNumber(ctx as NormalizeContext<NumberNodeDescription>),
-  array: (ctx) => normalizeArray(ctx as NormalizeContext<ArrayNodeDescription>),
-  object: (ctx) => normalizeObject(ctx as NormalizeContext<ObjectNodeDescription>),
-  map: (ctx) => normalizeMap(ctx as NormalizeContext<MapNodeDescription>),
-  component: (ctx) => normalizeComponent(ctx as NormalizeContext<ComponentNodeDescription>),
-  componentSchema: (ctx) => normalizeComponent(ctx as NormalizeContext<ComponentNodeDescription>),
-  validator: (ctx) => normalizeValidator(ctx as NormalizeContext<ValidatorNodeDescription>),
+  array: (ctx, queue) => normalizeArray(ctx as NormalizeContext<ArrayNodeDescription>, queue),
+  object: (ctx, queue) => normalizeObject(ctx as NormalizeContext<ObjectNodeDescription>, queue),
+  map: (ctx, queue) => normalizeMap(ctx as NormalizeContext<MapNodeDescription>, queue),
+  component: (ctx, queue) => normalizeComponent(ctx as NormalizeContext<ComponentNodeDescription>, queue),
+  componentSchema: (ctx, queue) => normalizeComponent(ctx as NormalizeContext<ComponentNodeDescription>, queue),
+  validator: (ctx, queue) => normalizeValidator(ctx as NormalizeContext<ValidatorNodeDescription>, queue),
   command: (ctx) => normalizeCommand(ctx as NormalizeContext<CommandNodeDescription>),
 };

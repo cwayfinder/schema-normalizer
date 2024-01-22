@@ -1,8 +1,8 @@
 import { ArrayNodeDescription, NodeDescription } from '../../types/node-decription';
-import { NormalizeContext, normalizeNode } from '../node.normalizer';
-import { ArrayNodeSchema } from '../../types/schema';
+import { NormalizeContext } from '../node.normalizer';
+import { ArrayNodeSchema, NodeSchema } from '../../types/schema';
 
-export function normalizeArray(ctx: NormalizeContext<ArrayNodeDescription>): ArrayNodeSchema {
+export function normalizeArray(ctx: NormalizeContext<ArrayNodeDescription>, queue: NormalizeContext<NodeDescription>[]): ArrayNodeSchema {
   if (!ctx.rawSchema) {
     return { resolverName: 'static', resolverData: [], coerced: ctx.rawSchema === undefined };
   }
@@ -15,14 +15,16 @@ export function normalizeArray(ctx: NormalizeContext<ArrayNodeDescription>): Arr
     );
   }
 
-  const resolverData = ctx.rawSchema.map((itemSchema) => {
+  const resolverData: NodeSchema[] = [];
+  for (const itemRawSchema of ctx.rawSchema) {
     const itemCtx: NormalizeContext<NodeDescription> = {
       ...ctx,
-      rawSchema: itemSchema,
+      rawSchema: itemRawSchema,
       nodeDescription: ctx.nodeDescription.items,
+      insert: nodeSchema => resolverData.push(nodeSchema),
     };
-    return normalizeNode(itemCtx);
-  });
+    queue.push(itemCtx);
+  }
 
   return { resolverName: 'static', resolverData, coerced: false };
 }

@@ -2,7 +2,7 @@ import { NodeDescription, ObjectNodeDescription } from '../../types/node-decript
 import { NormalizeContext, normalizeNode } from '../node.normalizer';
 import { NodeSchema, ObjectNodeSchema } from '../../types/schema';
 
-export function normalizeObject(ctx: NormalizeContext<ObjectNodeDescription>): ObjectNodeSchema {
+export function normalizeObject(ctx: NormalizeContext<ObjectNodeDescription>, queue: NormalizeContext<NodeDescription>[]): ObjectNodeSchema {
   if (!ctx.rawSchema && ctx.nodeDescription.nullable) {
     return { resolverName: 'static', resolverData: null, coerced: ctx.rawSchema === undefined };
   }
@@ -18,8 +18,9 @@ export function normalizeObject(ctx: NormalizeContext<ObjectNodeDescription>): O
       ...ctx,
       nodeDescription: childNodeDescription,
       rawSchema: rawSchema[childNodeDescription.key],
+      insert: nodeSchema => resolverData[childNodeDescription.key] = nodeSchema,
     };
-    resolverData[childNodeDescription.key] = normalizeNode(childCtx);
+    queue.push(childCtx);
   }
 
   return { resolverName: 'static', resolverData, coerced: ctx.rawSchema === undefined };

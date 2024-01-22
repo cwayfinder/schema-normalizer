@@ -4,7 +4,7 @@ import { NormalizeContext, normalizeNode } from '../node.normalizer';
 import { NodeSchema, ValidatorNodeRawSchema, ValidatorNodeSchema, ValidatorSchema } from '../../types/schema';
 import { validatorPropertiesDescriptions } from '../../types/validators';
 
-export function normalizeValidator(ctx: NormalizeContext<ValidatorNodeDescription>): ValidatorNodeSchema {
+export function normalizeValidator(ctx: NormalizeContext<ValidatorNodeDescription>, queue: NormalizeContext<NodeDescription>[]): ValidatorNodeSchema {
   if (!ctx.rawSchema || typeof ctx.rawSchema !== 'object') {
     throw new Error(`Validator node schema "${JSON.stringify(ctx.rawSchema)}" is invalid. It must be an object.`);
   }
@@ -16,10 +16,10 @@ export function normalizeValidator(ctx: NormalizeContext<ValidatorNodeDescriptio
     );
   }
 
-  const props = normalizeChildNodes(ctx, validatorPropertiesDescriptions, rawSchema);
+  const props = normalizeChildNodes(ctx, validatorPropertiesDescriptions, rawSchema, queue);
 
   const paramsDescriptions = ctx.store.getValidatorDefinition(rawSchema.validatorType).description.params;
-  const params = normalizeChildNodes(ctx, paramsDescriptions, rawSchema);
+  const params = normalizeChildNodes(ctx, paramsDescriptions, rawSchema, queue);
 
   const resolverData = { validatorType: rawSchema.validatorType, ...props, params } as ValidatorSchema;
   return { resolverName: 'static', resolverData, coerced: false };
@@ -29,6 +29,7 @@ function normalizeChildNodes(
   ctx: NormalizeContext<NodeDescription>,
   descriptions: ChildNodeDescription[],
   rawSchema: Record<string, unknown>,
+  queue: NormalizeContext<NodeDescription>[]
 ): Record<string, NodeSchema> {
   const children: Record<string, NodeSchema> = {};
   for (const description of descriptions) {
@@ -37,8 +38,9 @@ function normalizeChildNodes(
       ...ctx,
       nodeDescription: description,
       rawSchema: rawSchema[key],
+      insert: nodeSchema => children[key] = nodeSchema,
     };
-    children[key] = normalizeNode(paramCtx);
+    queue.push(paramCtx);
   }
 
   return children;

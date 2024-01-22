@@ -1,12 +1,11 @@
 import { ComponentNodeDescription, NodeDescription } from '../../types/node-decription';
-import { NormalizeContext, normalizeNode } from '../node.normalizer';
+import { NormalizeContext } from '../node.normalizer';
 import { ComponentNodeSchema, ComponentRawSchema, NodeSchema } from '../../types/schema';
 import { ComponentSchema } from '../../mobx/component-schema';
 import { schemaIdGenerator } from '../../util/id-generator';
 import { InstanceSchema } from '../../mobx/instance-schema';
-import { normalizeSchema } from '../instance.normalizer.';
 
-export function normalizeComponent(ctx: NormalizeContext<ComponentNodeDescription>): ComponentNodeSchema {
+export function normalizeComponent(ctx: NormalizeContext<ComponentNodeDescription>, queue: NormalizeContext<NodeDescription>[]): ComponentNodeSchema {
   ctx.components = ctx.components || {};
   ctx.customIds = ctx.customIds || {};
   ctx.parentId = ctx.parentId || null;
@@ -39,8 +38,9 @@ export function normalizeComponent(ctx: NormalizeContext<ComponentNodeDescriptio
       rawSchema: mergedRawSchema[key],
       nodeDescription: propDescription,
       parentId: componentSchemaId!,
+      insert: nodeSchema => props[key] = nodeSchema,
     };
-    props[key] = normalizeNode(nodeCtx);
+    queue.push(nodeCtx);
   }
 
   const variables: Record<string, InstanceSchema> = {};
@@ -49,7 +49,16 @@ export function normalizeComponent(ctx: NormalizeContext<ComponentNodeDescriptio
       throw new Error(`Variable "${key}" has no description.`);
     }
 
-    variables[key] = normalizeSchema(schema, description, ctx.store);
+    const variableCtx: NormalizeContext<NodeDescription> = {
+      store: ctx.store,
+      rawSchema: schema,
+      nodeDescription: description,
+      insert: nodeSchema => {
+        const root = { description, schema: nodeSchema };
+        variables[key] = new InstanceSchema(root, variableCtx.components, variableCtx.customIds);
+      },
+    };
+    queue.push(variableCtx);
   }
 
   const componentSchema = new ComponentSchema({

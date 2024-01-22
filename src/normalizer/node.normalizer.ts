@@ -13,9 +13,10 @@ export interface NormalizeContext<TDescription extends NodeDescription> {
   components?: Record<ComponentSchemaId, ComponentSchema>;
   customIds?: Record<ComponentSchemaId, ComponentSchemaId>;
   inverted?: boolean;
+  insert: (nodeSchema: NodeSchema) => void;
 }
 
-export function normalizeNode<T extends NodeSchema = NodeSchema>(ctx: NormalizeContext<NodeDescription>): T {
+export function normalizeNode<T extends NodeSchema = NodeSchema>(ctx: NormalizeContext<NodeDescription>, queue: NormalizeContext<NodeDescription>[]): T {
   const schema = ctx.rawSchema;
   if (typeof schema === 'string') {
     if (schema.startsWith('=')) {
@@ -37,5 +38,5 @@ export function normalizeNode<T extends NodeSchema = NodeSchema>(ctx: NormalizeC
   }
 
   const impl = registry[ctx.nodeDescription.type];
-  return impl(ctx) as T;
+  return impl(ctx, queue) as T;
 }
