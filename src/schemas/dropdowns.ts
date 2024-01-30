@@ -52,6 +52,10 @@ export const dropdowns: any = {
             html: `=$option.label`,
           },
         },
+        placeholder: {
+          description: { type: 'string' },
+          schema: 'Select an option',
+        },
       },
     },
   ],
